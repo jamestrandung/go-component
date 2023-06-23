@@ -44,7 +44,7 @@ func TestForkJoinFailingFast(t *testing.T) {
 		{
 			desc: "executing task of sync component returns an error",
 			test: func(t *testing.T) {
-				tp := ComponentExecutor[int, int]{
+				e := ExecutorWithLoading[int, int]{
 					loadingTask:       async.Completed(1, nil),
 					executingSyncTask: async.Completed(0, assert.AnError),
 				}
@@ -52,8 +52,8 @@ func TestForkJoinFailingFast(t *testing.T) {
 				actual := ForkJoinFailingFast(
 					context.Background(),
 					ExecutionFlow{
-						Executors: [][]IComponentExecutor{
-							{tp},
+						Executors: [][]IExecutor{
+							{e},
 						},
 					},
 				)
@@ -64,15 +64,15 @@ func TestForkJoinFailingFast(t *testing.T) {
 		{
 			desc: "executing task of async component returns an error",
 			test: func(t *testing.T) {
-				tp := ComponentExecutor[int, int]{
+				e := Executor[int]{
 					executingAsyncTask: async.Completed(0, assert.AnError),
 				}
 
 				actual := ForkJoinFailingFast(
 					context.Background(),
 					ExecutionFlow{
-						Executors: [][]IComponentExecutor{
-							{tp},
+						Executors: [][]IExecutor{
+							{e},
 						},
 					},
 				)
@@ -83,7 +83,7 @@ func TestForkJoinFailingFast(t *testing.T) {
 		{
 			desc: "executing task of sync component returns no error",
 			test: func(t *testing.T) {
-				tp := ComponentExecutor[int, int]{
+				e := ExecutorWithLoading[int, int]{
 					loadingTask:       async.Completed(0, assert.AnError),
 					executingSyncTask: async.Completed(1, nil),
 				}
@@ -91,8 +91,8 @@ func TestForkJoinFailingFast(t *testing.T) {
 				actual := ForkJoinFailingFast(
 					context.Background(),
 					ExecutionFlow{
-						Executors: [][]IComponentExecutor{
-							{tp},
+						Executors: [][]IExecutor{
+							{e},
 						},
 					},
 				)
@@ -103,18 +103,18 @@ func TestForkJoinFailingFast(t *testing.T) {
 		{
 			desc: "executing task of async component returns no error",
 			test: func(t *testing.T) {
-				tp1 := ComponentExecutor[int, int]{
+				tp1 := Executor[int]{
 					executingAsyncTask: async.Completed(1, nil),
 				}
 
-				tp2 := ComponentExecutor[int, int]{
+				tp2 := Executor[int]{
 					executingAsyncTask: async.Completed(2, nil),
 				}
 
 				actual := ForkJoinFailingFast(
 					context.Background(),
 					ExecutionFlow{
-						Executors: [][]IComponentExecutor{
+						Executors: [][]IExecutor{
 							{tp1, tp2},
 						},
 					},
@@ -128,7 +128,7 @@ func TestForkJoinFailingFast(t *testing.T) {
 			test: func(t *testing.T) {
 				var val int
 
-				tp1 := ComponentExecutor[int, int]{
+				tp1 := ExecutorWithLoading[int, int]{
 					loadingTask: async.Completed(0, assert.AnError),
 					executingSyncTask: async.NewTask(
 						func(ctx context.Context) (int, error) {
@@ -138,7 +138,7 @@ func TestForkJoinFailingFast(t *testing.T) {
 					),
 				}
 
-				tp2 := ComponentExecutor[int, int]{
+				tp2 := ExecutorWithLoading[int, int]{
 					loadingTask: async.Completed(0, assert.AnError),
 					executingSyncTask: async.NewTask(
 						func(ctx context.Context) (int, error) {
@@ -152,7 +152,7 @@ func TestForkJoinFailingFast(t *testing.T) {
 				wg.Add(1)
 
 				var anotherVal int
-				tp3 := ComponentExecutor[int, int]{
+				tp3 := Executor[int]{
 					executingAsyncTask: async.NewTask(
 						func(ctx context.Context) (int, error) {
 							defer wg.Done()
@@ -166,7 +166,7 @@ func TestForkJoinFailingFast(t *testing.T) {
 				actual := ForkJoinFailingFast(
 					context.Background(),
 					ExecutionFlow{
-						Executors: [][]IComponentExecutor{
+						Executors: [][]IExecutor{
 							{tp1, tp2, tp3},
 						},
 					},
@@ -191,7 +191,7 @@ func TestForkJoinFailingFast(t *testing.T) {
 
 				var val int
 
-				tp1 := ComponentExecutor[int, int]{
+				tp1 := ExecutorWithLoading[int, int]{
 					loadingTask: async.Completed(0, assert.AnError),
 					executingSyncTask: async.NewTask(
 						func(ctx context.Context) (int, error) {
@@ -201,7 +201,7 @@ func TestForkJoinFailingFast(t *testing.T) {
 					),
 				}
 
-				tp2 := ComponentExecutor[int, int]{
+				tp2 := ExecutorWithLoading[int, int]{
 					loadingTask: async.Completed(0, assert.AnError),
 					executingSyncTask: async.NewTask(
 						func(ctx context.Context) (int, error) {
@@ -211,7 +211,7 @@ func TestForkJoinFailingFast(t *testing.T) {
 					),
 				}
 
-				tp3 := ComponentExecutor[int, int]{
+				tp3 := ExecutorWithLoading[int, int]{
 					loadingTask: async.Completed(0, assert.AnError),
 					executingSyncTask: async.NewTask(
 						func(ctx context.Context) (int, error) {
@@ -221,7 +221,7 @@ func TestForkJoinFailingFast(t *testing.T) {
 					),
 				}
 
-				tp4 := ComponentExecutor[int, int]{
+				tp4 := ExecutorWithLoading[int, int]{
 					loadingTask: async.Completed(0, assert.AnError),
 					executingSyncTask: async.NewTask(
 						func(ctx context.Context) (int, error) {
@@ -231,7 +231,7 @@ func TestForkJoinFailingFast(t *testing.T) {
 					),
 				}
 
-				tp5 := ComponentExecutor[int, int]{
+				tp5 := Executor[int]{
 					executingAsyncTask: async.NewTask(
 						func(ctx context.Context) (int, error) {
 							<-time.After(1 * time.Second)
@@ -243,7 +243,7 @@ func TestForkJoinFailingFast(t *testing.T) {
 				actual := ForkJoinFailingFast(
 					context.Background(),
 					ExecutionFlow{
-						Executors: [][]IComponentExecutor{
+						Executors: [][]IExecutor{
 							{tp1, tp2, tp3, tp4, tp5},
 						},
 					},
@@ -266,7 +266,7 @@ func TestForkJoinFailingFast(t *testing.T) {
 
 				var groupCtx context.Context
 
-				tp1 := ComponentExecutor[int, int]{
+				tp1 := Executor[int]{
 					executingAsyncTask: async.NewTask(
 						func(ctx context.Context) (int, error) {
 							groupCtx = ctx
@@ -275,7 +275,7 @@ func TestForkJoinFailingFast(t *testing.T) {
 					),
 				}
 
-				tp2 := ComponentExecutor[int, int]{
+				tp2 := Executor[int]{
 					executingAsyncTask: async.NewTask(
 						func(ctx context.Context) (int, error) {
 							<-time.After(1 * time.Second)
@@ -284,7 +284,7 @@ func TestForkJoinFailingFast(t *testing.T) {
 					),
 				}
 
-				tp3 := ComponentExecutor[int, int]{
+				tp3 := ExecutorWithLoading[int, int]{
 					loadingTask: async.Completed(0, assert.AnError),
 					executingSyncTask: async.NewTask(
 						func(ctx context.Context) (int, error) {
@@ -294,7 +294,7 @@ func TestForkJoinFailingFast(t *testing.T) {
 					),
 				}
 
-				tp4 := ComponentExecutor[int, int]{
+				tp4 := ExecutorWithLoading[int, int]{
 					loadingTask: async.Completed(0, assert.AnError),
 					executingSyncTask: async.NewTask(
 						func(ctx context.Context) (int, error) {
@@ -307,7 +307,7 @@ func TestForkJoinFailingFast(t *testing.T) {
 				actual := ForkJoinFailingFast(
 					context.Background(),
 					ExecutionFlow{
-						Executors: [][]IComponentExecutor{
+						Executors: [][]IExecutor{
 							{tp1, tp2, tp3, tp4},
 						},
 					},

@@ -49,10 +49,10 @@ type SyncComponentWithLoading[V any, T any] interface {
 	ExecuteSync(ctx context.Context, data LoadData[V]) (T, error)
 }
 
-// CreateSyncExecutor returns a ComponentExecutor encapsulating the
-// executing task that would be handled by the given SyncComponent.
-func CreateSyncExecutor[T any](c SyncComponent[T]) ComponentExecutor[any, T] {
-	return ComponentExecutor[any, T]{
+// CreateSyncExecutor returns an Executor encapsulating the executing
+// task that would be handled by the given SyncComponent.
+func CreateSyncExecutor[T any](c SyncComponent[T]) Executor[T] {
+	return Executor[T]{
 		executingSyncTask: async.NewTask[T](
 			func(ctx context.Context) (T, error) {
 				return c.ExecuteSync(ctx)
@@ -61,10 +61,10 @@ func CreateSyncExecutor[T any](c SyncComponent[T]) ComponentExecutor[any, T] {
 	}
 }
 
-// CreateAsyncExecutor returns a ComponentExecutor encapsulating the
-// executing task that would be handled by the given AsyncComponent.
-func CreateAsyncExecutor[T any](c AsyncComponent[T]) ComponentExecutor[any, T] {
-	return ComponentExecutor[any, T]{
+// CreateAsyncExecutor returns an Executor encapsulating the executing
+// task that would be handled by the given AsyncComponent.
+func CreateAsyncExecutor[T any](c AsyncComponent[T]) Executor[T] {
+	return Executor[T]{
 		executingAsyncTask: async.NewTask[T](
 			func(ctx context.Context) (T, error) {
 				return c.Execute(ctx)
@@ -73,9 +73,9 @@ func CreateAsyncExecutor[T any](c AsyncComponent[T]) ComponentExecutor[any, T] {
 	}
 }
 
-// CreateSyncExecutorWithLoading returns a ComponentExecutor encapsulating the
+// CreateSyncExecutorWithLoading returns an ExecutorWithLoading encapsulating the
 // loading & executing tasks that would be handled by the given component.
-func CreateSyncExecutorWithLoading[V any, T any](c SyncComponentWithLoading[V, T]) ComponentExecutor[V, T] {
+func CreateSyncExecutorWithLoading[V any, T any](c SyncComponentWithLoading[V, T]) ExecutorWithLoading[V, T] {
 	loadingTask := async.NewTask[V](
 		func(ctx context.Context) (V, error) {
 			return c.Load(ctx)
@@ -97,7 +97,7 @@ func CreateSyncExecutorWithLoading[V any, T any](c SyncComponentWithLoading[V, T
 		},
 	)
 
-	return ComponentExecutor[V, T]{
+	return ExecutorWithLoading[V, T]{
 		loadingTask:       loadingTask,
 		executingSyncTask: executingSyncTask,
 	}
@@ -105,8 +105,8 @@ func CreateSyncExecutorWithLoading[V any, T any](c SyncComponentWithLoading[V, T
 
 // CreateSyncOrchestratingExecutor returns a component that is meant for orchestrating
 // some logic without returning any values beside throwing an error if necessary.
-func CreateSyncOrchestratingExecutor(doFn func(ctx context.Context) error) ComponentExecutor[any, any] {
-	return ComponentExecutor[any, any]{
+func CreateSyncOrchestratingExecutor(doFn func(ctx context.Context) error) Executor[any] {
+	return Executor[any]{
 		executingSyncTask: async.NewTask[any](
 			func(ctx context.Context) (interface{}, error) {
 				return nil, doFn(ctx)
@@ -118,14 +118,14 @@ func CreateSyncOrchestratingExecutor(doFn func(ctx context.Context) error) Compo
 // CreateSyncOrchestratingExecutorWithResult returns a component that is meant
 // for orchestrating some logic that returns some values and throws an error
 // if necessary.
-func CreateSyncOrchestratingExecutorWithResult[T any](doFn func(ctx context.Context) (T, error)) (ComponentExecutor[any, T], async.Task[T]) {
+func CreateSyncOrchestratingExecutorWithResult[T any](doFn func(ctx context.Context) (T, error)) (Executor[T], async.Task[T]) {
 	t := async.NewTask[T](
 		func(ctx context.Context) (T, error) {
 			return doFn(ctx)
 		},
 	)
 
-	return ComponentExecutor[any, T]{
+	return Executor[T]{
 		executingSyncTask: t,
 	}, t
 }

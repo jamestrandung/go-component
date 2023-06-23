@@ -15,7 +15,6 @@ func TestCreateSyncExecutingTask(t *testing.T) {
 		Once()
 
 	actual := CreateSyncExecutor[int](mockSyncComponent)
-	assert.Nil(t, actual.loadingTask)
 	assert.NotNil(t, actual.executingSyncTask)
 
 	err := actual.invokeSyncTask(context.Background())
@@ -33,7 +32,6 @@ func TestCreateAsyncExecutingTask(t *testing.T) {
 		Once()
 
 	actual := CreateAsyncExecutor[int](mockAsyncComponent)
-	assert.Nil(t, actual.loadingTask)
 	assert.NotNil(t, actual.executingAsyncTask)
 
 	err := actual.invokeAsyncTask(context.Background())
@@ -75,7 +73,6 @@ func TestCreateOrchestratingTask(t *testing.T) {
 	}
 
 	actual := CreateSyncOrchestratingExecutor(doFn)
-	assert.Nil(t, actual.loadingTask)
 	assert.NotNil(t, actual.executingSyncTask)
 
 	err := actual.invokeSyncTask(context.Background())
@@ -95,7 +92,6 @@ func TestCreateOrchestratingTaskWithResult(t *testing.T) {
 				}
 
 				pair, future := CreateSyncOrchestratingExecutorWithResult(doFn)
-				assert.Nil(t, pair.loadingTask)
 				assert.NotNil(t, pair.executingSyncTask)
 
 				err := pair.invokeSyncTask(context.Background())
@@ -111,7 +107,6 @@ func TestCreateOrchestratingTaskWithResult(t *testing.T) {
 				}
 
 				pair, future := CreateSyncOrchestratingExecutorWithResult(doFn)
-				assert.Nil(t, pair.loadingTask)
 				assert.NotNil(t, pair.executingSyncTask)
 
 				err := pair.invokeSyncTask(context.Background())
